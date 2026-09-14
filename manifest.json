@@ -1,0 +1,22 @@
+{
+    "author": "doormat",
+    "barWidget": {
+        "allowMultiple": false,
+        "category": "Media",
+        "defaultSection": "center",
+        "description": "Apple-style live pill: now-playing and notifications in the bar.",
+        "displayName": "Dynamic Island"
+    },
+    "description": "Apple-style Dynamic Island as a bar widget: floating-free pill for media and notifications.",
+    "entryPoints": {
+        "barWidget": "BarWidget.qml"
+    },
+    "id": "doormat.dynamic-island",
+    "kinds": [
+        "bar-widget"
+    ],
+    "license": "MIT",
+    "name": "Dynamic Island",
+    "schemaVersion": 1,
+    "version": "0.2.0"
+}
