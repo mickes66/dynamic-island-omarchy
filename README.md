@@ -37,8 +37,9 @@ player) is dropped along with it.
 
 ## Gestures
 
-- **Left click** the pill: play/pause toggle, or raise the player window
-  (see Click setting below).
+- **Left click** the pill: play/pause toggle.
+- **Middle click** the pill: raise the player window (ignored when the
+  player can't raise).
 - **Hover** the pill: swaps the label/EQ for prev / play-pause / next
   transport controls (disable via menu).
 - **Right click** the pill: opens the options menu. Clicking elsewhere
@@ -64,9 +65,6 @@ Album modes fall back gracefully when the player reports no album.
 (resume playback, or `omarchy-shell island setOption hideWhenPaused false`,
 to get the menu back), plus toggles for the equalizer animation, hover
 transport controls, and notification previews.
-
-**Left click** — `Play / pause` or `Raise player` (falls back to toggle
-when the player can't raise).
 
 **Player** — `Automatic` follows the most recently playing source; picking
 a listed source pins the island to it until that source goes quiet.
