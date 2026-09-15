@@ -21,12 +21,17 @@ BarWidget {
   // Whoever played last wins: pausing Spotify must keep Spotify, not jump
   // to some older paused player that happens to sort first.
   readonly property var playingPlayer: {
+    var first = null
     for (var i = 0; i < players.length; i++) {
       var p = players[i]
-      if (p && p.isPlaying)
+      if (!p || !p.isPlaying)
+        continue
+      if (!first)
+        first = p
+      if (root.lastKey !== "" && root.playerKey(p) === root.lastKey)
         return p
     }
-    return null
+    return first
   }
   property string lastKey: ""
   onPlayingPlayerChanged: {
@@ -89,7 +94,11 @@ BarWidget {
     try {
       var d = JSON.parse(raw || "{}")
       var s = String(d.summary || "")
-      var b = String(d.body || "").replace(/<[^>]*>/g, "")
+      var b = String(d.body || "")
+        .replace(/<br\s*\/?>/gi, " ")
+        .replace(/<[^>]*>/g, "")
+        .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+        .replace(/&quot;/g, "\"").replace(/&#39;/g, "'").replace(/&apos;/g, "'")
       if (s === "" && b === "") {
         clearNotif()
         return
@@ -140,13 +149,6 @@ BarWidget {
 
   // Hover transport controls (media only): label + EQ swap for buttons.
   property bool hovered: false
-  property bool everHovered: false
-  property var hoverLog: []
-  function logHover(e) {
-    var l = root.hoverLog.slice(-11)
-    l.push(e + "@" + String(Math.floor(Date.now() / 100) % 100000) + "w" + String(Math.round(root.pillW)))
-    root.hoverLog = l
-  }
   property bool forceControls: false
   readonly property bool showControls: (root.hovered || root.forceControls) && root.showMedia && !root.vertical
 
@@ -185,7 +187,7 @@ BarWidget {
     text: root.labelText
   }
   readonly property int artBox: 20
-  readonly property int labelW: Math.min(240, Math.max(40, Math.ceil(labelMetrics.advanceWidth)))
+  readonly property int labelW: Math.min(root.showControls ? 150 : 240, Math.max(40, Math.ceil(labelMetrics.advanceWidth)))
   readonly property int controlsW: 3 * 26 + 2 * 8
   readonly property int pillW: 14 + artBox + 8 + labelW + (root.showControls ? 8 + controlsW : (root.showEq ? 8 + 16 : 0)) + 14
 
@@ -221,8 +223,6 @@ BarWidget {
         active: root.active,
         ticks: root.tickCount,
         hovered: root.hovered,
-        everHovered: root.everHovered,
-        hoverLog: root.hoverLog,
         showControls: root.showControls,
         showNotif: root.showNotif,
         app: root.notifApp,
@@ -234,8 +234,8 @@ BarWidget {
     function ping(): string {
       return "ok"
     }
-    function controls(on: string): string {
-      root.forceControls = (on === "true" || on === "1")
+    function controls(enable: string): string {
+      root.forceControls = (enable === "true" || enable === "1")
       return root.showControls ? "shown" : "hidden"
     }
   }
@@ -246,7 +246,7 @@ BarWidget {
     anchors.topMargin: 4
     anchors.bottomMargin: 4
     radius: height / 2
-    color: "#000000"
+    color: Color.bar.background
     border.color: Qt.rgba(1, 1, 1, 0.12)
     border.width: 1
     visible: root.active
@@ -268,12 +268,31 @@ BarWidget {
       onEntered: {
         hoverExitGrace.stop()
         root.hovered = true
-        root.everHovered = true
-        root.logHover("E")
       }
       onExited: {
-        root.logHover("X")
         hoverExitGrace.restart()
+      }
+    }
+
+    // Vertical bars: artwork dot only — the pill is one slot wide.
+    Item {
+      anchors.centerIn: parent
+      width: 18
+      height: 18
+      visible: root.vertical && root.active
+      Rectangle {
+        anchors.fill: parent
+        radius: 9
+        color: root.showNotif ? Color.bar.active : Color.bar.background
+        visible: root.showNotif || root.mediaArt === ""
+      }
+      Image {
+        anchors.fill: parent
+        source: root.mediaArt
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        sourceSize: Qt.size(36, 36)
+        visible: !root.showNotif && root.mediaArt !== ""
       }
     }
 
@@ -293,13 +312,13 @@ BarWidget {
         Rectangle {
           anchors.fill: parent
           radius: root.showNotif ? 4 : 10
-          color: root.showNotif ? "#30d158" : "#1c1c22"
+          color: root.showNotif ? Color.bar.active : Color.bar.background
           visible: root.showNotif || root.mediaArt === ""
         }
         Text {
           anchors.centerIn: parent
           text: "♪"
-          color: "white"
+          color: Color.bar.text
           font.pixelSize: 11
           visible: !root.showNotif && root.mediaArt === ""
         }
@@ -307,6 +326,8 @@ BarWidget {
           anchors.fill: parent
           source: root.mediaArt
           fillMode: Image.PreserveAspectCrop
+          asynchronous: true
+          sourceSize: Qt.size(40, 40)
           visible: !root.showNotif && root.mediaArt !== ""
         }
       }
@@ -315,7 +336,7 @@ BarWidget {
         width: root.labelW
         anchors.verticalCenter: parent.verticalCenter
         text: root.labelText
-        color: "white"
+        color: Color.bar.text
         font.family: labelMetrics.font.family
         font.pixelSize: 12
         font.weight: Font.Medium
@@ -334,7 +355,7 @@ BarWidget {
             width: 3
             height: root.eqHeight(index)
             radius: 1.5
-            color: "#30d158"
+            color: Color.bar.active
             Behavior on height {
               NumberAnimation {
                 duration: 300
@@ -357,7 +378,7 @@ BarWidget {
           Text {
             anchors.centerIn: parent
             text: "◀◀"
-            color: "white"
+            color: Color.bar.text
             font.pixelSize: 11
             opacity: root.activePlayer && root.activePlayer.canGoPrevious ? 1 : 0.35
           }
@@ -376,7 +397,7 @@ BarWidget {
           Text {
             anchors.centerIn: parent
             text: root.isPlaying ? "❚❚" : "▶"
-            color: "white"
+            color: Color.bar.text
             font.pixelSize: 13
             opacity: (root.isPlaying && root.activePlayer && !root.activePlayer.canPause
               || !root.isPlaying && root.activePlayer && !root.activePlayer.canPlay) ? 0.35 : 1
@@ -396,7 +417,7 @@ BarWidget {
           Text {
             anchors.centerIn: parent
             text: "▶▶"
-            color: "white"
+            color: Color.bar.text
             font.pixelSize: 11
             opacity: root.activePlayer && root.activePlayer.canGoNext ? 1 : 0.35
           }
