@@ -9,7 +9,7 @@ import qs.Ui
 // Idle (no media, no notification) it collapses to zero width.
 BarWidget {
   id: root
-  moduleName: "doormat.dynamic-island"
+  moduleName: "sharifmdathar.dynamic-island"
 
   // ---------- media (MPRIS direct; multiple readers are fine) ----------
   readonly property var players: Mpris.players ? Mpris.players.values : []

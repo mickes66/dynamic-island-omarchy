@@ -1,5 +1,5 @@
 {
-    "author": "doormat",
+    "author": "sharifmdathar",
     "barWidget": {
         "allowMultiple": false,
         "category": "Media",
@@ -11,12 +11,12 @@
     "entryPoints": {
         "barWidget": "BarWidget.qml"
     },
-    "id": "doormat.dynamic-island",
+    "id": "sharifmdathar.dynamic-island",
     "kinds": [
         "bar-widget"
     ],
     "license": "MIT",
     "name": "Dynamic Island",
     "schemaVersion": 1,
-    "version": "0.2.0"
+    "version": "1.0.0"
 }
