@@ -61,7 +61,27 @@ BarWidget {
   readonly property bool hasMedia: activePlayer !== null && !!((activePlayer.trackTitle || activePlayer.trackArtist))
   readonly property string mediaTitle: activePlayer ? (activePlayer.trackTitle || "") : ""
   readonly property string mediaArtist: activePlayer ? (activePlayer.trackArtist || "") : ""
+  // Label mode: full "artist — title" or title only. Persisted to the
+  // widget's shell.json layout entry so it survives restarts.
+  readonly property bool titleOnly: root.setting("titleOnly", false)
+  property bool menuOpen: false
+  function setTitleOnly(v) {
+    var entry = { id: root.moduleName }
+    for (var key in root.settings) if (key !== "id") entry[key] = root.settings[key]
+    entry["titleOnly"] = !!v
+    // Applied locally first so the label changes on the click itself; the
+    // shell.json write comes back through the bar as the same value.
+    root.settings = entry
+    if (root.bar && root.bar.shell && typeof root.bar.shell.updateEntryInline === "function")
+      root.bar.shell.updateEntryInline(root.moduleName, entry)
+  }
+  // Called by the popup card's outside-click dismissal.
+  function close() {
+    root.menuOpen = false
+  }
   readonly property string mediaText: {
+    if (root.titleOnly)
+      return mediaTitle || mediaArtist
     if (mediaArtist && mediaTitle)
       return mediaArtist + " — " + mediaTitle
     return mediaTitle || mediaArtist
@@ -228,7 +248,8 @@ BarWidget {
         app: root.notifApp,
         summary: root.notifSummary,
         hasMedia: root.hasMedia,
-        mediaText: root.mediaText
+        mediaText: root.mediaText,
+        titleOnly: root.titleOnly
       })
     }
     function ping(): string {
@@ -252,13 +273,21 @@ BarWidget {
     visible: root.active
 
     // Hover detection for the transport controls (bottom of stack; buttons sit above).
-    // A plain click anywhere else on the pill toggles play/pause.
+    // Left click anywhere else on the pill toggles play/pause; right click
+    // opens the label-mode menu.
     MouseArea {
       anchors.fill: parent
+      acceptedButtons: Qt.LeftButton | Qt.RightButton
       hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
       enabled: root.showMedia && !root.vertical
-      onClicked: root.doToggle()
+      onClicked: function(mouse) {
+        if (mouse.button === Qt.RightButton) {
+          root.menuOpen = !root.menuOpen
+          return
+        }
+        root.doToggle()
+      }
       onEnabledChanged: {
         if (!enabled) {
           hoverExitGrace.stop()
@@ -426,6 +455,101 @@ BarWidget {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: root.doNext()
+          }
+        }
+      }
+    }
+  }
+
+  // ---------- label-mode menu (right click) ----------
+  PopupCard {
+    id: labelMenu
+    anchorItem: root
+    bar: root.bar
+    owner: root
+    open: root.menuOpen && root.showMedia && !root.vertical
+    contentWidth: labelMenu.fittedContentWidth(Style.space(220))
+    contentHeight: labelMenu.fittedContentHeight(menuColumn.implicitHeight)
+
+    Column {
+      id: menuColumn
+      anchors.fill: parent
+      spacing: 2
+
+      Item {
+        width: parent.width
+        height: 28
+        Rectangle {
+          anchors.fill: parent
+          radius: 6
+          color: Color.bar.active
+          opacity: fullMouse.containsMouse ? 0.30 : (!root.titleOnly ? 0.15 : 0)
+        }
+        Text {
+          anchors.left: parent.left
+          anchors.leftMargin: 12
+          anchors.verticalCenter: parent.verticalCenter
+          text: "Artist — Title"
+          color: Color.bar.text
+          font.family: Style.font.family
+          font.pixelSize: 12
+        }
+        Text {
+          anchors.right: parent.right
+          anchors.rightMargin: 12
+          anchors.verticalCenter: parent.verticalCenter
+          text: "✓"
+          color: Color.bar.active
+          font.pixelSize: 12
+          visible: !root.titleOnly
+        }
+        MouseArea {
+          id: fullMouse
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: {
+            root.setTitleOnly(false)
+            root.menuOpen = false
+          }
+        }
+      }
+
+      Item {
+        width: parent.width
+        height: 28
+        Rectangle {
+          anchors.fill: parent
+          radius: 6
+          color: Color.bar.active
+          opacity: titleMouse.containsMouse ? 0.30 : (root.titleOnly ? 0.15 : 0)
+        }
+        Text {
+          anchors.left: parent.left
+          anchors.leftMargin: 12
+          anchors.verticalCenter: parent.verticalCenter
+          text: "Title only"
+          color: Color.bar.text
+          font.family: Style.font.family
+          font.pixelSize: 12
+        }
+        Text {
+          anchors.right: parent.right
+          anchors.rightMargin: 12
+          anchors.verticalCenter: parent.verticalCenter
+          text: "✓"
+          color: Color.bar.active
+          font.pixelSize: 12
+          visible: root.titleOnly
+        }
+        MouseArea {
+          id: titleMouse
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: {
+            root.setTitleOnly(true)
+            root.menuOpen = false
           }
         }
       }
