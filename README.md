@@ -12,6 +12,10 @@ takes up bar space for nothing.
 Enable it with `omarchy plugin enable sharifmdathar.dynamic-island`; it lands in
 the bar's center section next to the clock.
 
+## Preview
+
+![Dynamic Island pill showing now-playing media, with the right-click options menu open](preview.png)
+
 ## Installation
 
 ```sh
