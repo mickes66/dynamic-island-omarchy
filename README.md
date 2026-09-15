@@ -12,6 +12,25 @@ takes up bar space for nothing.
 Enable it with `omarchy plugin enable sharifmdathar.dynamic-island`; it lands in
 the bar's center section next to the clock.
 
+## Installation
+
+```sh
+omarchy plugin add https://github.com/sharifmdathar/dynamic-island-omarchy.git --enable
+```
+
+This clones the repository as a shell plugin, validates its manifest, and
+places the widget in the bar's center section. No other setup needed.
+
+## Removal
+
+```sh
+omarchy plugin remove sharifmdathar.dynamic-island
+```
+
+Removal deletes the plugin directory. Your other bar layout entries are
+untouched; the island's own layout entry (label mode, toggles, pinned
+player) is dropped along with it.
+
 ## Gestures
 
 - **Left click** the pill: play/pause toggle, or raise the player window
