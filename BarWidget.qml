@@ -74,14 +74,13 @@ BarWidget {
   readonly property string mediaArt: activePlayer ? (activePlayer.trackArtUrl || "") : ""
   readonly property string mediaAlbum: activePlayer ? (activePlayer.trackAlbum || "") : ""
   readonly property bool isPlaying: activePlayer ? !!activePlayer.isPlaying : false
+  readonly property string activePlayerName: Model.playerLabel(activePlayer)
 
   // ---------- options (persisted to the widget's shell.json layout entry) ----------
-  readonly property string labelMode: Model.normalizeLabelMode(
-    root.setting("labelMode", undefined), root.setting("titleOnly", false))
+  readonly property string labelMode: root.setting("labelMode", "artistTitle")
   readonly property bool hideWhenPaused: root.setting("hideWhenPaused", false)
   readonly property bool showEqualizer: root.setting("showEqualizer", true)
-  readonly property bool showHoverControls: Model.normalizeBool(
-    root.setting("showHoverControls", undefined), root.setting("hoverControls", undefined), true)
+  readonly property bool showHoverControls: root.setting("showHoverControls", true)
   readonly property bool showNotifications: root.setting("showNotifications", true)
   readonly property string pinnedPlayer: root.setting("pinnedPlayer", "")
   property bool menuOpen: false
@@ -89,18 +88,11 @@ BarWidget {
     var entry = { id: root.moduleName }
     for (var k in root.settings) if (k !== "id") entry[k] = root.settings[k]
     entry[key] = value
-    if ("titleOnly" in entry) delete entry["titleOnly"]
-    if ("showHoverControls" in entry) delete entry["hoverControls"]
-    if ("clickAction" in entry) delete entry["clickAction"]
     // Applied locally first so the change lands on the click itself; the
     // shell.json write comes back through the bar as the same value.
     root.settings = entry
     if (root.bar && root.bar.shell && typeof root.bar.shell.updateEntryInline === "function")
       root.bar.shell.updateEntryInline(root.moduleName, entry)
-  }
-  // Compat shim for the first-generation menu: true/false maps to title/artistTitle.
-  function setLegacyTitleOnly(v) {
-    root.setOption("labelMode", v ? "title" : "artistTitle")
   }
   // Called by the popup card's outside-click dismissal.
   function close() {
@@ -453,6 +445,11 @@ BarWidget {
     showNotifications: root.showNotifications
     pinnedPlayer: root.pinnedPlayer
     players: root.players
+    mediaTitle: root.mediaTitle
+    mediaArtist: root.mediaArtist
+    mediaAlbum: root.mediaAlbum
+    mediaArt: root.mediaArt
+    playerName: root.activePlayerName
     onActionRequested: function(action) { root.menuAction(action) }
   }
 }

@@ -17,6 +17,17 @@ PopupCard {
   property string pinnedPlayer: ""
   property var players: []
 
+  // Now-playing info for the header.
+  property string mediaTitle: ""
+  property string mediaArtist: ""
+  property string mediaAlbum: ""
+  property string mediaArt: ""
+  property string playerName: ""
+
+  // Settings sections start collapsed; the header expands them.
+  property bool settingsExpanded: false
+  onOpenChanged: if (!open) settingsExpanded = false
+
   signal actionRequested(string action)
 
   contentWidth: menu.fittedContentWidth(Style.space(240))
@@ -128,17 +139,158 @@ PopupCard {
     anchors.fill: parent
     spacing: 2
 
-    Repeater { model: ["Label"]; delegate: menuHeader }
-    Repeater { model: menu.labelModeRows; delegate: menuRow }
+    // Now-playing header: large artwork with title / artist / album on
+    // separate lines. Clicking anywhere on it expands the settings below.
+    Item {
+      width: parent.width
+      height: 68
+      Rectangle {
+        anchors.fill: parent
+        radius: 6
+        color: Style.hoverFillFor(Color.bar.text, Color.accent)
+        opacity: headerMouse.containsMouse ? 1 : 0
+      }
+      // Big artwork tile.
+      Item {
+        anchors.left: parent.left
+        anchors.leftMargin: 8
+        anchors.verticalCenter: parent.verticalCenter
+        width: 52
+        height: 52
+        Rectangle {
+          anchors.fill: parent
+          radius: 8
+          color: Color.bar.background
+          visible: menu.mediaArt === ""
+        }
+        Text {
+          anchors.centerIn: parent
+          text: "♪"
+          color: Color.bar.text
+          font.pixelSize: 20
+          visible: menu.mediaArt === ""
+        }
+        Image {
+          anchors.fill: parent
+          source: menu.mediaArt
+          fillMode: Image.PreserveAspectCrop
+          asynchronous: true
+          sourceSize: Qt.size(104, 104)
+          visible: menu.mediaArt !== ""
+        }
+      }
+      Column {
+        anchors.left: parent.left
+        anchors.leftMargin: 68
+        anchors.right: parent.right
+        anchors.rightMargin: 12
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 2
+        Text {
+          width: parent.width
+          text: menu.mediaTitle !== "" ? menu.mediaTitle : menu.mediaArtist
+          color: Color.bar.text
+          font.family: Style.font.family
+          font.pixelSize: 13
+          font.weight: Font.Medium
+          elide: Text.ElideRight
+          maximumLineCount: 1
+        }
+        Text {
+          width: parent.width
+          text: (menu.mediaTitle !== "" && menu.mediaArtist !== "")
+            ? menu.mediaArtist : menu.playerName
+          color: Color.bar.text
+          opacity: 0.75
+          font.family: Style.font.family
+          font.pixelSize: 12
+          elide: Text.ElideRight
+          maximumLineCount: 1
+          visible: text !== ""
+        }
+        Text {
+          width: parent.width
+          text: menu.mediaAlbum
+          color: Color.bar.text
+          opacity: 0.6
+          font.family: Style.font.family
+          font.pixelSize: 11
+          elide: Text.ElideRight
+          maximumLineCount: 1
+          visible: menu.mediaAlbum !== ""
+        }
+      }
+      MouseArea {
+        id: headerMouse
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: menu.settingsExpanded = !menu.settingsExpanded
+      }
+    }
 
-    Repeater { model: [0]; delegate: menuDivider }
+    // Explicit Settings button; expands/collapses the sections below.
+    Item {
+      width: parent.width
+      height: 30
+      Rectangle {
+        anchors.fill: parent
+        radius: 6
+        color: Style.hoverFillFor(Color.bar.text, Color.accent)
+        opacity: settingsMouse.containsMouse ? 1 : 0
+      }
+      Text {
+        anchors.left: parent.left
+        anchors.leftMargin: 12
+        anchors.verticalCenter: parent.verticalCenter
+        text: "⚙  Settings"
+        color: Color.bar.text
+        font.family: Style.font.family
+        font.pixelSize: 12
+        font.weight: Font.Medium
+      }
+      Text {
+        anchors.right: parent.right
+        anchors.rightMargin: 12
+        anchors.verticalCenter: parent.verticalCenter
+        text: menu.settingsExpanded ? "▾" : "▸"
+        color: Color.bar.text
+        opacity: 0.6
+        font.pixelSize: 11
+      }
+      MouseArea {
+        id: settingsMouse
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: menu.settingsExpanded = !menu.settingsExpanded
+      }
+    }
 
-    Repeater { model: ["Behavior"]; delegate: menuHeader }
-    Repeater { model: menu.behaviorRows; delegate: menuRow }
+    Rectangle {
+      width: parent.width
+      height: 1
+      color: Color.bar.text
+      opacity: 0.15
+    }
 
-    Repeater { model: [0]; delegate: menuDivider }
+    Column {
+      width: parent.width
+      spacing: 2
+      visible: menu.settingsExpanded
 
-    Repeater { model: ["Player"]; delegate: menuHeader }
-    Repeater { model: menu.pinnedPlayerRows; delegate: menuRow }
+      Repeater { model: ["Label"]; delegate: menuHeader }
+      Repeater { model: menu.labelModeRows; delegate: menuRow }
+
+      Repeater { model: [0]; delegate: menuDivider }
+
+      Repeater { model: ["Behavior"]; delegate: menuHeader }
+      Repeater { model: menu.behaviorRows; delegate: menuRow }
+
+      Repeater { model: [0]; delegate: menuDivider }
+
+      Repeater { model: ["Player"]; delegate: menuHeader }
+      Repeater { model: menu.pinnedPlayerRows; delegate: menuRow }
+    }
   }
 }

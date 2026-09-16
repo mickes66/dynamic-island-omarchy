@@ -15,31 +15,6 @@ function playerLabel(p) {
   return String(p.identity || p.desktopEntry || p.dbusName || "")
 }
 
-// Older stored values ("full", "album", "titlealbum", titleOnly bool)
-// normalize to the current mode names on read.
-function normalizeLabelMode(m, legacyTitleOnly) {
-  var mode = String(m === undefined || m === null
-    ? (legacyTitleOnly ? "title" : "artistTitle") : m)
-  if (mode === "full")
-    return "artistTitle"
-  if (mode === "album")
-    return "artistTitleAlbum"
-  if (mode === "titlealbum")
-    return "titleAlbum"
-  return (mode === "title" || mode === "titleAlbum" || mode === "artistTitleAlbum")
-    ? mode : "artistTitle"
-}
-
-// Three-state read with a legacy fallback: new key wins, then the old key,
-// then the default. Used when a setting was renamed between versions.
-function normalizeBool(v, legacy, fallback) {
-  if (v === undefined || v === null)
-    v = legacy
-  if (v === undefined || v === null)
-    v = fallback
-  return !!v
-}
-
 // Pill label for a label mode. Album modes fall back gracefully when the
 // player reports no album.
 function mediaTextFor(mode, title, artist, album) {

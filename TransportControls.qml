@@ -56,7 +56,7 @@ Row {
     // the text baseline, while rectangles stay exactly centered.
     Row {
       anchors.centerIn: parent
-      anchors.verticalCenterOffset: 1
+      anchors.verticalCenterOffset: 2
       spacing: 3
       visible: root.playing
       Repeater {

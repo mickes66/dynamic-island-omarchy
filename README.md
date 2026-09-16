@@ -47,7 +47,10 @@ player) is dropped along with it.
 
 ## Options menu
 
-Everything persists to the widget's `shell.json` layout entry via
+Right-click opens a now-playing header — large artwork, title, artist and
+album on their own lines — above a **⚙ Settings** button. Click the
+button (or the header) to expand the settings sections below. Everything
+persists to the widget's `shell.json` layout entry via
 `updateEntryInline`, so choices survive restarts and sync across monitors.
 
 **Label** — what the pill shows for the current track:
