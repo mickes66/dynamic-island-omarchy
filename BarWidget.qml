@@ -409,6 +409,7 @@ BarWidget {
         font.family: labelMetrics.font.family
         font.pixelSize: 12
         font.weight: Font.Medium
+        textFormat: Text.PlainText
         elide: Text.ElideRight
         maximumLineCount: 1
       }

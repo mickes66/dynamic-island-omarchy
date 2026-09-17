@@ -193,6 +193,7 @@ PopupCard {
           font.family: Style.font.family
           font.pixelSize: 13
           font.weight: Font.Medium
+          textFormat: Text.PlainText
           elide: Text.ElideRight
           maximumLineCount: 1
         }
@@ -204,6 +205,7 @@ PopupCard {
           opacity: 0.75
           font.family: Style.font.family
           font.pixelSize: 12
+          textFormat: Text.PlainText
           elide: Text.ElideRight
           maximumLineCount: 1
           visible: text !== ""
@@ -214,6 +216,7 @@ PopupCard {
           color: Color.bar.text
           opacity: 0.6
           font.family: Style.font.family
+          textFormat: Text.PlainText
           font.pixelSize: 11
           elide: Text.ElideRight
           maximumLineCount: 1
