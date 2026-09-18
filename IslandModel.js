@@ -44,3 +44,20 @@ function decodeNotifBody(raw) {
     .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
     .replace(/&quot;/g, "\"").replace(/&#39;/g, "'").replace(/&apos;/g, "'")
 }
+
+// Format track seconds as m:ss (or h:mm:ss past an hour). NaN/negative
+// guard to "--:--" so unsupported players never show garbage.
+function formatTime(secs) {
+  var s = Math.floor(Number(secs))
+  if (!isFinite(s) || s < 0)
+    return "--:--"
+  var h = Math.floor(s / 3600)
+  var m = Math.floor((s % 3600) / 60)
+  var rest = s % 60
+  var ss = (rest < 10 ? "0" : "") + rest
+  if (h > 0) {
+    var mm = (m < 10 ? "0" : "") + m
+    return h + ":" + mm + ":" + ss
+  }
+  return m + ":" + ss
+}

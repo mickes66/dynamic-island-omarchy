@@ -24,11 +24,18 @@ PopupCard {
   property string mediaArt: ""
   property string playerName: ""
 
+  // Track progress (seconds). Written by the island from MprisPlayer;
+  // length <= 0 or canSeek false hides the seek bar.
+  property double position: 0
+  property double length: 0
+  property bool canSeek: false
+
   // Settings sections start collapsed; the header expands them.
   property bool settingsExpanded: false
   onOpenChanged: if (!open) settingsExpanded = false
 
   signal actionRequested(string action)
+  signal seekRequested(double position)
 
   contentWidth: menu.fittedContentWidth(Style.space(240))
   contentHeight: menu.fittedContentHeight(menuColumn.implicitHeight)
@@ -229,6 +236,107 @@ PopupCard {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: menu.settingsExpanded = !menu.settingsExpanded
+      }
+    }
+
+    // Seek bar: elapsed + clickable progress + total. Drag previews
+    // locally; the target position commits on release.
+    Item {
+      id: seekBox
+      width: parent.width
+      height: 26
+      visible: menu.canSeek && menu.length > 0
+      property bool scrubbing: false
+      property double scrubPos: 0
+      readonly property double shownPos: scrubbing ? scrubPos : Math.max(0, Math.min(menu.position, menu.length))
+      function clampToTrack(x, w) {
+        if (!(w > 0) || !(menu.length > 0))
+          return 0
+        var r = x / w
+        if (r < 0) r = 0
+        if (r > 1) r = 1
+        return r * menu.length
+      }
+      Row {
+        anchors.left: parent.left
+        anchors.leftMargin: 8
+        anchors.right: parent.right
+        anchors.rightMargin: 8
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 8
+        Text {
+          anchors.verticalCenter: parent.verticalCenter
+          width: 36
+          text: Model.formatTime(seekBox.shownPos)
+          color: Color.bar.text
+          opacity: 0.6
+          font.family: Style.font.family
+          font.pixelSize: 10
+          horizontalAlignment: Text.AlignRight
+        }
+        Item {
+          id: seekTrack
+          width: parent.width - 36 - 36 - 16
+          height: 16
+          anchors.verticalCenter: parent.verticalCenter
+          Rectangle {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            height: 4
+            radius: 2
+            color: Color.bar.text
+            opacity: 0.2
+          }
+          Rectangle {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            width: menu.length > 0 ? parent.width * (seekBox.shownPos / menu.length) : 0
+            height: 4
+            radius: 2
+            color: Color.accent
+          }
+          Rectangle {
+            anchors.verticalCenter: parent.verticalCenter
+            x: (menu.length > 0 ? parent.width * (seekBox.shownPos / menu.length) : 0) - 5
+            width: 10
+            height: 10
+            radius: 5
+            color: Color.accent
+            visible: seekMouse.containsMouse || seekBox.scrubbing
+          }
+          MouseArea {
+            id: seekMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            preventStealing: true
+            onPressed: function(mouse) {
+              seekBox.scrubbing = true
+              seekBox.scrubPos = seekBox.clampToTrack(mouse.x, seekTrack.width)
+            }
+            onPositionChanged: function(mouse) {
+              if ((seekMouse.pressedButtons & Qt.LeftButton) && seekBox.scrubbing)
+                seekBox.scrubPos = seekBox.clampToTrack(mouse.x, seekTrack.width)
+            }
+            onReleased: function(mouse) {
+              if (seekBox.scrubbing) {
+                seekBox.scrubbing = false
+                menu.seekRequested(seekBox.scrubPos)
+              }
+            }
+            onCanceled: seekBox.scrubbing = false
+          }
+        }
+        Text {
+          anchors.verticalCenter: parent.verticalCenter
+          width: 36
+          text: Model.formatTime(menu.length)
+          color: Color.bar.text
+          opacity: 0.6
+          font.family: Style.font.family
+          font.pixelSize: 10
+        }
       }
     }
 

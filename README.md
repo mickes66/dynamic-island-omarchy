@@ -42,13 +42,16 @@ player) is dropped along with it.
   player can't raise).
 - **Hover** the pill: swaps the label/EQ for prev / play-pause / next
   transport controls (disable via menu).
+- **Scroll** on the pill: seeks ±10s (players that support seeking).
 - **Right click** the pill: opens the options menu. Clicking elsewhere
   dismisses it.
 
 ## Options menu
 
 Right-click opens a now-playing header — large artwork, title, artist and
-album on their own lines — above a **⚙ Settings** button. Click the
+album on their own lines — with an elapsed / seek-bar / total row below
+it when the player supports seeking (click or drag to seek), above a
+**⚙ Settings** button. Click the
 button (or the header) to expand the settings sections below. Everything
 persists to the widget's `shell.json` layout entry via
 `updateEntryInline`, so choices survive restarts and sync across monitors.
@@ -87,7 +90,7 @@ restyles the widget with the bar.
 The widget exposes an `island` IPC target:
 
 ```sh
-omarchy-shell island state                 # JSON: activity, media, all options
+omarchy-shell island state                 # JSON: activity, media, position/length/canSeek, all options
 omarchy-shell island ping                  # "ok"
 omarchy-shell island controls true|false   # force hover controls (debug)
 omarchy-shell island setOption <key> <true|false|value>

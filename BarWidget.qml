@@ -76,6 +76,26 @@ BarWidget {
   readonly property bool isPlaying: activePlayer ? !!activePlayer.isPlaying : false
   readonly property string activePlayerName: Model.playerLabel(activePlayer)
 
+  // ---------- progress (MprisPlayer seconds; position live at ~5Hz) ----------
+  readonly property double trackPosition: activePlayer ? activePlayer.position : 0
+  readonly property double trackLength: activePlayer ? activePlayer.length : 0
+  readonly property bool canSeek: activePlayer ? (!!activePlayer.canSeek && !!activePlayer.positionSupported) : false
+  readonly property bool hasProgress: root.canSeek && !!activePlayer && !!activePlayer.lengthSupported && root.trackLength > 0
+  function seekTo(pos) {
+    var p = root.activePlayer
+    if (!p || !root.canSeek || !(root.trackLength > 0))
+      return
+    var t = Math.max(0, Math.min(Number(pos), root.trackLength))
+    if (isFinite(t))
+      p.position = t
+  }
+  function seekBy(offset) {
+    var p = root.activePlayer
+    if (!p || !p.canSeek)
+      return
+    p.seek(Number(offset))
+  }
+
   // ---------- options (persisted to the widget's shell.json layout entry) ----------
   readonly property string labelMode: root.setting("labelMode", "artistTitle")
   readonly property bool hideWhenPaused: root.setting("hideWhenPaused", false)
@@ -223,6 +243,8 @@ BarWidget {
     if (root.activePlayer && root.activePlayer.canGoNext)
       root.activePlayer.next()
   }
+  // Wheel over the pill: ±10s seek. Relative seek() may work even when
+  // absolute position isn't supported, so this only needs canSeek.
   readonly property string labelText: showNotif
     ? ((notifApp !== "" ? notifApp + " · " : "") + (notifSummary !== "" ? notifSummary : notifBody))
     : mediaText
@@ -268,6 +290,9 @@ BarWidget {
         summary: root.notifSummary,
         hasMedia: root.hasMedia,
         mediaText: root.mediaText,
+        position: root.trackPosition,
+        length: root.trackLength,
+        canSeek: root.hasProgress,
         labelMode: root.labelMode,
         hideWhenPaused: root.hideWhenPaused,
         pinnedPlayer: root.pinnedPlayer
@@ -327,6 +352,15 @@ BarWidget {
           return
         }
         root.togglePlayback()
+      }
+      onWheel: function(wheel) {
+        var p = root.activePlayer
+        if (!p || !p.canSeek)
+          return
+        var d = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.angleDelta.x
+        if (d > 0) root.seekBy(10)
+        else if (d < 0) root.seekBy(-10)
+        wheel.accepted = true
       }
       onEnabledChanged: {
         if (!enabled) {
@@ -451,6 +485,10 @@ BarWidget {
     mediaAlbum: root.mediaAlbum
     mediaArt: root.mediaArt
     playerName: root.activePlayerName
+    position: root.trackPosition
+    length: root.trackLength
+    canSeek: root.hasProgress
     onActionRequested: function(action) { root.menuAction(action) }
+    onSeekRequested: function(pos) { root.seekTo(pos) }
   }
 }
