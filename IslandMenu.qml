@@ -36,6 +36,7 @@ PopupCard {
 
   signal actionRequested(string action)
   signal seekRequested(double position)
+  signal raiseRequested()
 
   contentWidth: menu.fittedContentWidth(Style.space(240))
   contentHeight: menu.fittedContentHeight(menuColumn.implicitHeight)
@@ -147,7 +148,8 @@ PopupCard {
     spacing: 2
 
     // Now-playing header: large artwork with title / artist / album on
-    // separate lines. Clicking anywhere on it expands the settings below.
+    // separate lines. Clicking it raises the player app; the Settings
+    // button below expands the settings sections.
     Item {
       width: parent.width
       height: 68
@@ -235,7 +237,7 @@ PopupCard {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: menu.settingsExpanded = !menu.settingsExpanded
+        onClicked: menu.raiseRequested()
       }
     }
 

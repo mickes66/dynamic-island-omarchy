@@ -76,11 +76,44 @@ BarWidget {
   readonly property bool isPlaying: activePlayer ? !!activePlayer.isPlaying : false
   readonly property string activePlayerName: Model.playerLabel(activePlayer)
 
-  // ---------- progress (MprisPlayer seconds; position live at ~5Hz) ----------
+  // ---------- progress (MprisPlayer seconds; live value interpolated below) ----------
   readonly property double trackPosition: activePlayer ? activePlayer.position : 0
   readonly property double trackLength: activePlayer ? activePlayer.length : 0
   readonly property bool canSeek: activePlayer ? (!!activePlayer.canSeek && !!activePlayer.positionSupported) : false
   readonly property bool hasProgress: root.canSeek && !!activePlayer && !!activePlayer.lengthSupported && root.trackLength > 0
+  // ---------- live position (interpolated) ----------
+  // Some players never move MPRIS Position while playing, so anchor the
+  // last reported value and count up on the wall clock. Any real update
+  // (seek, track change, pause/resume) re-anchors to the truth.
+  property double anchorPos: 0
+  property double anchorAt: 0
+  property int posTicks: 0
+  readonly property double livePosition: {
+    root.posTicks
+    var base = root.anchorPos
+    if (root.isPlaying && root.anchorAt > 0)
+      base += (Date.now() - root.anchorAt) / 1000
+    if (root.trackLength > 0)
+      base = Math.min(base, root.trackLength)
+    return Math.max(0, base)
+  }
+  function reanchor() {
+    root.anchorPos = root.trackPosition
+    root.anchorAt = Date.now()
+  }
+  onTrackPositionChanged: reanchor()
+  onTrackLengthChanged: reanchor()
+  onIsPlayingChanged: reanchor()
+  onActivePlayerChanged: reanchor()
+  Component.onCompleted: root.reanchor()
+
+  // Ticks the interpolated position while playing (500ms = smooth bar).
+  Timer {
+    interval: 500
+    running: root.showMedia && root.isPlaying && root.hasProgress
+    repeat: true
+    onTriggered: root.posTicks++
+  }
   function seekTo(pos) {
     var p = root.activePlayer
     if (!p || !root.canSeek || !(root.trackLength > 0))
@@ -292,7 +325,7 @@ BarWidget {
         summary: root.notifSummary,
         hasMedia: root.hasMedia,
         mediaText: root.mediaText,
-        position: root.trackPosition,
+        position: root.livePosition,
         length: root.trackLength,
         canSeek: root.hasProgress,
         labelMode: root.labelMode,
@@ -488,10 +521,11 @@ BarWidget {
     mediaAlbum: root.mediaAlbum
     mediaArt: root.mediaArt
     playerName: root.activePlayerName
-    position: root.trackPosition
+    position: root.livePosition
     length: root.trackLength
     canSeek: root.hasProgress
     onActionRequested: function(action) { root.menuAction(action) }
     onSeekRequested: function(pos) { root.seekTo(pos) }
+    onRaiseRequested: function() { root.doRaise(); root.menuOpen = false }
   }
 }

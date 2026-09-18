@@ -1,5 +1,6 @@
 # Dynamic Island (`sharifmdathar.dynamic-island`)
 
+
 A third-party Omarchy bar widget: a compact live pill for now-playing media
 and notification previews. It collapses to zero width when idle, so it never
 takes up bar space for nothing.
@@ -12,9 +13,16 @@ takes up bar space for nothing.
 Enable it with `omarchy plugin enable sharifmdathar.dynamic-island`; it lands in
 the bar's center section next to the clock.
 
-## Preview
+## Preview 
 
-![Dynamic Island pill showing now-playing media, with the right-click options menu open](preview.png)
+### (Click to watch full demo on YouTube)
+
+[![Watch the demo](./preview.png)](https://youtu.be/VII630kGqz8)
+
+<!-- ![Dynamic Island pill showing now-playing media, with the right-click options menu open](preview.png) -->
+
+## Plugin page
+https://plugins.omarchy.org/plugin.html?id=sharifmdathar.dynamic-island
 
 ## Installation
 
@@ -51,9 +59,9 @@ player) is dropped along with it.
 
 Right-click opens a now-playing header — large artwork, title, artist and
 album on their own lines — with an elapsed / seek-bar / total row below
-it when the player supports seeking (click or drag to seek), above a
-**⚙ Settings** button. Click the
-button (or the header) to expand the settings sections below. Everything
+it when the player supports seeking (click or drag to seek). Clicking
+the header raises the player app; the **⚙ Settings** button below it
+expands the settings sections. Everything
 persists to the widget's `shell.json` layout entry via
 `updateEntryInline`, so choices survive restarts and sync across monitors.
 
