@@ -42,7 +42,8 @@ player) is dropped along with it.
   player can't raise).
 - **Hover** the pill: swaps the label/EQ for prev / play-pause / next
   transport controls (disable via menu).
-- **Scroll** on the pill: seeks ±10s (players that support seeking).
+- **Scroll** on the pill: player volume ±5% per notch (ignored when the
+  player reports no volume support).
 - **Right click** the pill: opens the options menu. Clicking elsewhere
   dismisses it.
 

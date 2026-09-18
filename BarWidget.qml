@@ -89,11 +89,13 @@ BarWidget {
     if (isFinite(t))
       p.position = t
   }
-  function seekBy(offset) {
+  function adjustVolume(delta) {
     var p = root.activePlayer
-    if (!p || !p.canSeek)
+    if (!p || !p.volumeSupported)
       return
-    p.seek(Number(offset))
+    var v = Math.max(0, Math.min(1, Number(p.volume) + Number(delta)))
+    if (isFinite(v))
+      p.volume = v
   }
 
   // ---------- options (persisted to the widget's shell.json layout entry) ----------
@@ -243,8 +245,8 @@ BarWidget {
     if (root.activePlayer && root.activePlayer.canGoNext)
       root.activePlayer.next()
   }
-  // Wheel over the pill: ±10s seek. Relative seek() may work even when
-  // absolute position isn't supported, so this only needs canSeek.
+  // Wheel over the pill: volume ±5% per notch. No-op on players
+  // without volume support.
   readonly property string labelText: showNotif
     ? ((notifApp !== "" ? notifApp + " · " : "") + (notifSummary !== "" ? notifSummary : notifBody))
     : mediaText
@@ -355,11 +357,12 @@ BarWidget {
       }
       onWheel: function(wheel) {
         var p = root.activePlayer
-        if (!p || !p.canSeek)
+        if (!p || !p.volumeSupported)
           return
         var d = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.angleDelta.x
-        if (d > 0) root.seekBy(10)
-        else if (d < 0) root.seekBy(-10)
+        if (d > 0) root.adjustVolume(0.05)
+        else if (d < 0) root.adjustVolume(-0.05)
+        else return
         wheel.accepted = true
       }
       onEnabledChanged: {
