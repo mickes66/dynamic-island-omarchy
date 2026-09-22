@@ -1,5 +1,10 @@
 # Dynamic Island (`sharifmdathar.dynamic-island`)
 
+> **This fork (`mickes66/dynamic-island-omarchy`) adds two local changes on top of upstream:**
+> - `EqualizerBars.qml` now drives the EQ bars from cava's live PipeWire levels (same technique as this setup's `micke.cava` widget) instead of a canned 4-frame animation.
+> - The pill background goes fully transparent in semi-transparent bar mode instead of re-applying its own alpha on top of the bar's already-tinted surface, which was compounding into a visibly darker/more opaque pill than the rest of the bar.
+>
+> See commit `35ff53a` for the diff.
 
 A third-party Omarchy bar widget: a compact live pill for now-playing media
 and notification previews. It collapses to zero width when idle, so it never
