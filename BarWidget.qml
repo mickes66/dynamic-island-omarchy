@@ -296,9 +296,9 @@ BarWidget {
     text: root.labelText
   }
   readonly property int artW: 20
-  readonly property int labelW: Math.min(root.controlsVisible ? 150 : 240, Math.max(40, Math.ceil(labelMetrics.advanceWidth)))
+  readonly property int labelW: Math.min(root.controlsVisible ? 200 : 320, Math.max(40, Math.ceil(labelMetrics.advanceWidth)))
   readonly property int controlsW: 3 * 26 + 2 * 8
-  readonly property int pillW: 14 + artW + 8 + labelW + (root.controlsVisible ? 8 + controlsW : (root.showEq ? 8 + 16 : 0)) + 14
+  readonly property int pillW: 14 + artW + 8 + labelW + (root.controlsVisible ? 8 + controlsW : (root.showEq ? 8 + 61 : 0)) + 14
 
   visible: root.active
   implicitWidth: root.active ? (vertical ? barSize : pillW) : 0
@@ -355,9 +355,12 @@ BarWidget {
     anchors.topMargin: 4
     anchors.bottomMargin: 4
     radius: height / 2
-    color: Color.bar.background
-    border.color: Qt.rgba(1, 1, 1, 0.12)
-    border.width: 1
+    // Semi mode must NOT re-apply its own alpha here: the pill sits on top
+    // of the bar's own already-tinted surface (PanelWindow), so drawing our
+    // own 0.65 fill over that surface compounds into ~0.88 effective opacity
+    // instead of matching the bar's 0.65. Just go fully transparent, like
+    // clear mode, and let the bar's own tint show through untouched.
+    color: (root.bar && (root.bar.transparent || root.bar.dimmed)) ? "transparent" : Color.bar.background
     visible: root.active
 
     // Hover detection for the transport controls (bottom of stack; buttons sit above).
